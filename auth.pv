@@ -1,0 +1,168 @@
+(* 
+    Formal Verification of Multi-Server Attribute-Based Authentication Protocol using ProVerif
+    Based on the provided schema images.
+*)
+
+set preciseActions = true.
+
+(* Types *)
+type id.
+type pwd.
+type bio.
+type key.
+type point.
+type scalar.
+type timestamp.
+type attribute.
+
+(* Constants *)
+const P: point.
+free c: channel.
+free s: channel [private]. (* Secure channel for registration *)
+free db_lock: channel [private]. (* Atomic lock for replay cache *)
+
+(* Functions *)
+fun h(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall a: bitstring, b: bitstring; unxor(xor(a, b), b) = a.
+fun mult(scalar, point): point.
+fun enc(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; dec(enc(m, k), k) = m.
+
+(* Diffie-Hellman property on ECC *)
+equation forall a: scalar, b: scalar; mult(a, mult(b, P)) = mult(b, mult(a, P)).
+
+(* Type Conversions *)
+fun id_to_bs(id): bitstring [typeConverter].
+fun pwd_to_bs(pwd): bitstring [typeConverter].
+fun bio_to_bs(bio): bitstring [typeConverter].
+fun key_to_bs(bitstring): bitstring [typeConverter].
+fun point_to_bs(point): bitstring [typeConverter].
+fun scalar_to_bs(scalar): bitstring [typeConverter].
+fun time_to_bs(timestamp): bitstring [typeConverter].
+fun attr_to_bs(attribute): bitstring [typeConverter].
+
+(* Events for Authentication *)
+event beginUser(id, id, point).
+event endUser(id, id, point).
+event beginServer(id, id, point).
+event endServer(id, id, point).
+
+(* Secrecy Queries *)
+free secretID: id [private].
+free secretPW: pwd [private].
+free secretBIO: bio [private].
+free SK: bitstring [private].
+
+(* 1. Password Guessing Attack *)
+query attacker(secretPW).
+
+(* 2. Session Key Disclosure *)
+query attacker(SK).
+
+(* 3. User Impersonation Attack / MITM (User to Server) *)
+query x: id, y: id, z: point; inj-event(endServer(x, y, z)) ==> inj-event(beginUser(x, y, z)).
+
+(* 4. Server Impersonation Attack / MITM (Server to User) *)
+query x: id, y: id, z: point; inj-event(endUser(x, y, z)) ==> inj-event(beginServer(x, y, z)).
+
+(* 5. Replay Attack (Ensuring injectivity with precise cache) *)
+table replay_cache(point).
+query x: id, y: id, z: point; inj-event(endServer(x, y, z)) ==> inj-event(beginUser(x, y, z)).
+
+(* 6. User Tracking Attack (Identity Privacy in Phase 0) *)
+query attacker(secretID) phase 0.
+
+(* 7. Smart Card Theft Attack *)
+query attacker(secretPW) phase 1.
+
+(* 8. Insider Attack *)
+query attacker(secretPW) phase 2.
+
+(* --- Protocol Processes --- *)
+
+(* Registration Center (RC) *)
+let RC(xAk: bitstring, attr: attribute) =
+    in(s, (IDi: id, RPWi: bitstring));
+    new ri: scalar;
+    let Aik = h(xor(id_to_bs(IDi), xAk)) in
+    let Bik = h(xor(Aik, xor(scalar_to_bs(ri), xAk))) in
+    let Fik = enc((id_to_bs(IDi), Bik, RPWi), xAk) in
+    out(s, (Aik, Bik, Fik, h(xAk)));
+    (* For Phase 1 (Smart Card Theft Attack) *)
+    phase 1;
+    out(c, (Aik, Bik, Fik, h(xAk))).
+
+(* User Process *)
+let User(IDi: id, PWi: pwd, BIOi: bio, attr: attribute) =
+    (* Registration Phase *)
+    let RPWi = h(xor(id_to_bs(IDi), xor(pwd_to_bs(PWi), bio_to_bs(BIOi)))) in
+    out(s, (IDi, RPWi));
+    in(s, (Aik: bitstring, Bik: bitstring, Fik: bitstring, hxAk: bitstring));
+    let Ci = h(xor(RPWi, xor(Bik, xor(hxAk, Aik)))) in
+    
+    (* Leak Smart Card data for "Smart Card Theft Attack" analysis *)
+    (* out(c, (Aik, Bik, Fik, hxAk, Ci)); *)
+
+    (* Login & Auth Phase *)
+    new T1: timestamp;
+    new r1: scalar;
+    let Di = mult(r1, P) in
+    let Ei = h(xor(Bik, xor(time_to_bs(T1), xor(point_to_bs(Di), xor(id_to_bs(IDi), RPWi))))) in
+    
+    event beginUser(IDi, IDi, Di);
+    out(c, (Di, Ei, Fik, T1, attr));
+    
+    in(c, (Gi: point, T2: timestamp, Ki: bitstring));
+    let Ji' = mult(r1, Gi) in
+    let SKij' = h(xor(point_to_bs(Ji'), xor(time_to_bs(T1), xor(time_to_bs(T2), xor(id_to_bs(IDi), Bik))))) in
+    if h(SKij') = Ki then
+    event endUser(IDi, IDi, Gi);
+    let sessionKey = SKij' in
+    (* Check for session key disclosure *)
+    out(c, enc(SK, sessionKey)).
+
+(* Server Process *)
+let Server(xAk: bitstring, attr: attribute) =
+    in(c, (Di: point, Ei: bitstring, Fik: bitstring, T1: timestamp, attr_in: attribute));
+    
+    (* Atomic Replay Cache Check using db_lock as a mutex *)
+    in(db_lock, ()); (* Acquire Lock *)
+    get replay_cache(=Di) in 
+        out(db_lock, ()); (* Release Lock and Fail *)
+        yield 
+    else
+        insert replay_cache(Di);
+        out(db_lock, ()); (* Release Lock and Continue *)
+    
+    if attr = attr_in then
+    let (IDi_dec: id, Bik_dec: bitstring, RPWi_dec: bitstring) = dec(Fik, xAk) in
+    let Ei' = h(xor(Bik_dec, xor(time_to_bs(T1), xor(point_to_bs(Di), xor(id_to_bs(IDi_dec), RPWi_dec))))) in
+    if Ei = Ei' then
+    
+    new T2: timestamp;
+    new r2: scalar;
+    let Gi = mult(r2, P) in
+    event beginServer(IDi_dec, IDi_dec, Gi);
+    let Ji = mult(r2, Di) in
+    let SKij = h(xor(point_to_bs(Ji), xor(time_to_bs(T1), xor(time_to_bs(T2), xor(id_to_bs(IDi_dec), Bik_dec))))) in
+    let Ki = h(SKij) in
+    
+    out(c, (Gi, T2, Ki));
+    event endServer(IDi_dec, IDi_dec, Di).
+
+(* Main Process *)
+process
+    new xAk: bitstring;
+    new attr: attribute;
+    ( 
+        out(db_lock, ()) | (* Initialize the lock token *)
+        (!User(secretID, secretPW, secretBIO, attr)) | 
+        (!Server(xAk, attr)) | 
+        (!RC(xAk, attr)) |
+        (
+            (* For Phase 2 (Insider Attack) *)
+            phase 2;
+            out(c, xAk)
+        )
+    )
