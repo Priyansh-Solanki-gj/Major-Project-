@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | ABA Protocol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 16px;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .profile-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .profile-value {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag {
+            background: rgba(0, 210, 255, 0.1);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+        .key-box {
+            background: #000;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #38bdf8;
+            overflow-x: auto;
+            border-left: 3px solid var(--accent);
+        }
+        .action-btn {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" style="max-width: 800px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <span class="status-badge">System Authenticated</span>
+            <h2 style="text-align: left; margin-bottom: 5px;">Welcome, {{ username }}</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Identity: {{ user_id }}</p>
+        </div>
+        <a href="/login" style="color: #f87171; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Logout</a>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Profile Card -->
+        <div class="card">
+            <h3 style="margin-bottom: 15px; font-size: 1rem;">User Profile</h3>
+            <div class="profile-info">
+                <div class="profile-label">Email Address</div>
+                <div class="profile-value">{{ email }}</div>
+                
+                <div class="profile-label">Current Attributes</div>
+                <div class="tag-container">
+                    {% for attr in attributes %}
+                    <span class="tag">{{ attr }}</span>
+                    {% endfor %}
+                    {% if not attributes %}
+                    <span style="color: #64748b; font-size: 0.8rem;">No attributes assigned</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Actions Card -->
+        <div class="card">
+            <h3 style="margin-bottom: 15px; font-size: 1rem;">Security Settings</h3>
+            <a href="/change-password-verify" class="action-btn">Update Password (PW<sub>i</sub>)</a>
+            <a href="/change-biometric-verify" class="action-btn">Update Biometrics (BI<sub>i</sub>)</a>
+            <a href="/change-attribute" class="action-btn">Modify Attributes (A<sub>k</sub>)</a>
+        </div>
+
+        <!-- Keys Card -->
+        <div class="card full-width">
+            <h3 style="margin-bottom: 15px; font-size: 1rem;">Session Keys ($SK_{ij}$)</h3>
+            <div style="margin-bottom: 15px;">
+                <div class="profile-label" style="margin-bottom: 5px;">Derived User Key</div>
+                <div class="key-box">{{ user_session_key }}</div>
+            </div>
+            <div>
+                <div class="profile-label" style="margin-bottom: 5px;">Server Acknowledged Key</div>
+                <div class="key-box">{{ server_session_key }}</div>
+            </div>
+        </div>
+
+        <!-- Protocol Analysis Card -->
+        <div class="card full-width">
+            <h3 style="margin-bottom: 15px; font-size: 1rem;">Protocol Security Analysis</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="text-align: left; color: #64748b; font-size: 0.8rem;">
+                        <th style="padding: 10px 0; border-bottom: 1px solid var(--glass-border);">Security Property</th>
+                        <th style="padding: 10px 0; border-bottom: 1px solid var(--glass-border);">Verification Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attack, status in proposed.items() %}
+                    <tr>
+                        <td style="padding: 12px 0; font-size: 0.9rem;">{{ attack }}</td>
+                        <td style="padding: 12px 0; font-size: 0.9rem; font-weight: 600; color: {% if 'HANDLED' in status %}#10b981{% else %}#f87171{% endif %};">
+                            {{ status }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

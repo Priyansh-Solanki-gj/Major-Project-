@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Registration | ABA Protocol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>Create Account</h2>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="user_id">Identity (ID<sub>i</sub>)</label>
+            <input type="text" id="user_id" name="user_id" placeholder="e.g. user123" required>
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Display name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="name@domain.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password (PW<sub>i</sub>)</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+        </div>
+
+        <div class="form-group">
+            <label for="biometric">Biometric Factor (BI<sub>i</sub>)</label>
+            <input type="text" id="biometric" name="biometric" placeholder="Pattern, PIN or Key" required>
+        </div>
+
+        <div class="form-group">
+            <label>Available Attributes (A<sub>k</sub>)</label>
+            <div class="attributes-grid">
+                <label class="attr-checkbox">
+                    <input type="checkbox" name="attributes" value="Admin"> Admin
+                </label>
+                <label class="attr-checkbox">
+                    <input type="checkbox" name="attributes" value="Researcher"> Researcher
+                </label>
+                <label class="attr-checkbox">
+                    <input type="checkbox" name="attributes" value="Student"> Student
+                </label>
+                <label class="attr-checkbox">
+                    <input type="checkbox" name="attributes" value="Guest"> Guest
+                </label>
+            </div>
+        </div>
+
+        <button type="submit">Initialize Registration</button>
+    </form>
+
+    <div class="links">
+        Already have an account? <a href="/login">Secure Login</a>
+    </div>
+</div>
+
+</body>
+</html>

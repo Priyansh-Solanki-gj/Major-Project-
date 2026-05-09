@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login | ABA Protocol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>Secure Login</h2>
+    
+    <form method="POST">
+        <button type="button" class="smart-card-btn" id="smartCardBtn">
+            <span class="icon">🪪</span>
+            <span>Insert Smart Card</span>
+        </button>
+
+        <div id="loginFields">
+            <div class="form-group">
+                <label for="user_id">Identity (ID<sub>i</sub>)</label>
+                <input type="text" id="user_id" name="user_id" placeholder="Enter Identity" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password (PW<sub>i</sub>)</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-group">
+                <label for="biometric">Biometric Factor (BI<sub>i</sub>)</label>
+                <input type="text" id="biometric" name="biometric" placeholder="Verify Biometric" required>
+            </div>
+
+            {% if error %}
+            <div class="error-msg">
+                <div>{{ error }}</div>
+                {% if attempts_str %}
+                <div style="font-weight: 600; margin-top: 5px;">{{ attempts_str }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <button type="submit">Authenticate Session</button>
+        </div>
+    </form>
+
+    <div class="links">
+        <a href="/register">Create New Account</a>
+        <span style="margin: 0 10px; opacity: 0.3;">|</span>
+        <a href="/change-password-verify">Change Password</a>
+    </div>
+</div>
+
+<script>
+    const smartCardBtn = document.getElementById('smartCardBtn');
+    smartCardBtn.addEventListener('click', () => {
+        smartCardBtn.innerHTML = '<span class="icon">✅</span><span>Smart Card Detected</span>';
+        smartCardBtn.style.borderColor = 'var(--accent)';
+        smartCardBtn.style.color = '#fff';
+        smartCardBtn.style.background = 'rgba(0, 210, 255, 0.05)';
+    });
+</script>
+
+</body>
+</html>

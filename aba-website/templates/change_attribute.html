@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Attributes | ABA Protocol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>Update Attributes</h2>
+    <p style="text-align: center; color: #94a3b8; margin-bottom: 25px; font-size: 0.9rem;">
+        Modify your current identity attributes (A<sub>k</sub>).
+    </p>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Select Your Roles</label>
+            <div class="attributes-grid">
+                <label class="attr-checkbox">
+                    <input type="checkbox" name="attributes" value="Admin" {% if 'Admin' in current_attributes %}checked{% endif %}> Admin
+                </label>
+                <label class="attr-checkbox">
+                    <input type="checkbox" name="attributes" value="Researcher" {% if 'Researcher' in current_attributes %}checked{% endif %}> Researcher
+                </label>
+                <label class="attr-checkbox">
+                    <input type="checkbox" name="attributes" value="Student" {% if 'Student' in current_attributes %}checked{% endif %}> Student
+                </label>
+                <label class="attr-checkbox">
+                    <input type="checkbox" name="attributes" value="Guest" {% if 'Guest' in current_attributes %}checked{% endif %}> Guest
+                </label>
+            </div>
+        </div>
+
+        <button type="submit">Update Attributes</button>
+    </form>
+
+    <div class="links">
+        <a href="/dashboard">Return to Dashboard</a>
+    </div>
+</div>
+
+</body>
+</html>

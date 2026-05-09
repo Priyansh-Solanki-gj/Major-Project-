@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorize Biometric Change | ABA Protocol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>Authorize Change</h2>
+    <p style="text-align: center; color: #94a3b8; margin-bottom: 25px; font-size: 0.9rem;">
+        Please verify your identity to change your Biometric Factor (BI<sub>i</sub>).
+    </p>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="user_id">User Identity (ID<sub>i</sub>)</label>
+            <input type="text" id="user_id" name="user_id" placeholder="Confirm ID" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password (PW<sub>i</sub>)</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <button type="submit">Verify Identity</button>
+    </form>
+
+    <div class="links">
+        <a href="/dashboard">Back to Dashboard</a>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Biometric Factor | ABA Protocol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>Update Biometrics</h2>
+    <p style="text-align: center; color: #94a3b8; margin-bottom: 25px; font-size: 0.9rem;">
+        Initialize your new Biometric Factor (BI<sub>i</sub>).
+    </p>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="biometric">New Biometric Pattern/PIN</label>
+            <input type="text" id="biometric" name="biometric" placeholder="Enter new biometric data" required>
+        </div>
+
+        <button type="submit">Update Biometric Factor</button>
+    </form>
+
+    <div class="links">
+        Changing this will invalidate your current Smart Card token.
+    </div>
+</div>
+
+</body>
+</html>
